@@ -59,6 +59,9 @@ pip install git+https://github.com/openai/CLIP.git
 # Download CLIP model and convert to ONNX format
 python scripts/download_models.py
 
+# macOS users: install build dependencies (protoc and gRPC plugin)
+brew install protobuf grpc
+
 # Create build directory
 mkdir -p backend/build && cd backend/build
 
