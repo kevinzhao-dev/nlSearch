@@ -19,7 +19,14 @@ search_engine = SearchEngine()
 router = APIRouter()
 
 @router.post("/embed/text", response_model=EmbedResponse)
-async def embed_text_endpoint(request: TextEmbedRequest):
+async def embed_text_endpoint(request: TextEmbedRequest) -> EmbedResponse:
+    """Embed the provided text and return the resulting vector.
+
+    Parameters
+    ----------
+    request: TextEmbedRequest
+        Contains the text to embed.
+    """
     try:
         vector = embed_text(request.text)
         return EmbedResponse(vector=vector)
@@ -27,7 +34,14 @@ async def embed_text_endpoint(request: TextEmbedRequest):
         raise HTTPException(status_code=500, detail=str(e))
 
 @router.post("/embed/image", response_model=EmbedResponse)
-async def embed_image_endpoint(file: UploadFile = File(...)):
+async def embed_image_endpoint(file: UploadFile = File(...)) -> EmbedResponse:
+    """Embed the uploaded image file and return the vector.
+
+    Parameters
+    ----------
+    file: UploadFile
+        Image content to embed.
+    """
     try:
         content = await file.read()
         vector = embed_image(content)
@@ -41,7 +55,20 @@ async def upload_endpoint(
     media_id: str = Form(...),
     album: str = Form(...),
     tags: str = Form(""),
-):
+)-> JSONResponse:
+    """Upload a file, embed it and store metadata.
+
+    Parameters
+    ----------
+    file: UploadFile
+        Image file to upload and embed.
+    media_id: str
+        Unique identifier for the media item.
+    album: str
+        Album name for grouping media.
+    tags: str
+        Comma separated tags for the media.
+    """
     try:
         content = await file.read()
         data_dir = os.getenv("DATA_DIR", "data")
@@ -60,7 +87,8 @@ async def upload_endpoint(
         raise HTTPException(status_code=500, detail=str(e))
 
 @router.post("/index")
-async def index_endpoint(request: IndexRequest):
+async def index_endpoint(request: IndexRequest) -> JSONResponse:
+    """Index a precomputed vector along with its metadata."""
     try:
         meta = request.metadata
         search_engine.add(
@@ -75,7 +103,14 @@ async def index_endpoint(request: IndexRequest):
         raise HTTPException(status_code=500, detail=str(e))
 
 @router.post("/search", response_model=SearchResponse)
-async def search_endpoint(request: SearchRequest):
+async def search_endpoint(request: SearchRequest) -> SearchResponse:
+    """Perform a text based search over indexed media.
+
+    Parameters
+    ----------
+    request: SearchRequest
+        Query text and optional filters.
+    """
     try:
         q_vec = embed_text(request.query)
         results = search_engine.search(q_vec, top_k=request.top_k, album=request.album)
