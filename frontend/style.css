@@ -1,0 +1,15 @@
+div.stButton > button {
+    background-color: #4CAF50;
+    color: white;
+    border-radius: 8px;
+    height: 3em;
+    width: 100%;
+}
+.result-block {
+    padding: 1em;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    background-color: #f9f9f9;
+    margin-bottom: 1em;
+}
+
