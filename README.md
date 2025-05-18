@@ -69,6 +69,9 @@ mkdir -p backend/build && cd backend/build
 cmake ..
 make -j4
 
+# Alternatively, run the helper script to automate the build
+./scripts/build_backend.sh
+
 # Run the backend server
 ./nlsearch_server
 ```
