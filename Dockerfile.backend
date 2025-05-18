@@ -1,0 +1,57 @@
+# Multi-stage build for the C++ backend
+
+# Build stage
+FROM debian:bullseye AS builder
+
+# Install dependencies
+RUN apt-get update && apt-get install -y \
+    build-essential \
+    cmake \
+    git \
+    wget \
+    libssl-dev \
+    pkg-config \
+    protobuf-compiler \
+    libprotobuf-dev \
+    curl \
+    unzip \
+    && rm -rf /var/lib/apt/lists/*
+
+# Set working directory
+WORKDIR /app
+
+# Copy the source code
+COPY backend /app/backend
+
+# Build the project
+RUN cd /app/backend && \
+    mkdir -p build && \
+    cd build && \
+    cmake .. && \
+    make -j$(nproc)
+
+# Runtime stage
+FROM debian:bullseye-slim
+
+# Install runtime dependencies
+RUN apt-get update && apt-get install -y \
+    libprotobuf23 \
+    libgomp1 \
+    libssl1.1 \
+    && rm -rf /var/lib/apt/lists/*
+
+# Create directories for data and models
+RUN mkdir -p /app/data /app/models
+
+# Copy built artifacts from the builder stage
+COPY --from=builder /app/backend/build/nlsearch_server /app/
+COPY --from=builder /app/backend/config.json /app/
+
+# Set working directory
+WORKDIR /app
+
+# Expose the gRPC port
+EXPOSE 50051
+
+# Set the entrypoint
+ENTRYPOINT ["/app/nlsearch_server", "/app/config.json"]

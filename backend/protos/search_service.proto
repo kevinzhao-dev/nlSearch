@@ -1,0 +1,85 @@
+syntax = "proto3";
+
+package nlsearch.api;
+
+service SearchService {
+  // Search for media using a text query
+  rpc TextSearch(TextSearchRequest) returns (SearchResponse) {}
+  
+  // Index a media file
+  rpc IndexMedia(IndexMediaRequest) returns (IndexMediaResponse) {}
+  
+  // Search using a media file as the query
+  rpc MediaSearch(MediaSearchRequest) returns (SearchResponse) {}
+  
+  // Get information about the server and indexes
+  rpc GetInfo(GetInfoRequest) returns (GetInfoResponse) {}
+}
+
+// Text search request
+message TextSearchRequest {
+  string query = 1;           // Text query
+  int32 max_results = 2;      // Maximum number of results to return
+  string album_id = 3;        // Optional album ID to search within
+}
+
+// Index a media file
+message IndexMediaRequest {
+  bytes media_data = 1;       // Binary media data (image/video)
+  string file_name = 2;       // Original file name
+  string media_type = 3;      // MIME type (e.g., "image/jpeg", "video/mp4")
+  string album_id = 4;        // Optional album ID
+  string metadata = 5;        // Optional JSON metadata
+}
+
+// Response after indexing media
+message IndexMediaResponse {
+  string media_id = 1;        // Unique ID assigned to the media
+  bool success = 2;           // Whether indexing was successful
+  string error_message = 3;   // Error message if not successful
+}
+
+// Search using a media file
+message MediaSearchRequest {
+  bytes media_data = 1;       // Binary media data (image/video)
+  string media_type = 2;      // MIME type
+  int32 max_results = 3;      // Maximum number of results
+  string album_id = 4;        // Optional album ID to search within
+}
+
+// Search response
+message SearchResponse {
+  repeated MediaResult results = 1;  // Search results
+  int32 total_results = 2;           // Total number of results
+  bool truncated = 3;                // Whether results were truncated
+}
+
+// Individual media result
+message MediaResult {
+  string media_id = 1;              // Unique media ID
+  float score = 2;                  // Similarity score
+  string media_type = 3;            // Media type
+  string url = 4;                   // URL to access the media
+  string thumbnail_url = 5;         // URL for thumbnail
+  string metadata = 6;              // JSON metadata
+}
+
+// Get server information
+message GetInfoRequest {
+  // Empty request
+}
+
+// Server information response
+message GetInfoResponse {
+  string version = 1;               // Server version
+  int32 total_media_count = 2;      // Total number of indexed media
+  repeated Album albums = 3;        // Available albums
+  repeated string supported_types = 4; // Supported media types
+}
+
+// Album information
+message Album {
+  string id = 1;                   // Album ID
+  string name = 2;                 // Album name
+  int32 media_count = 3;           // Number of media in the album
+}

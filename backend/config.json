@@ -1,0 +1,7 @@
+{
+    "server_address": "0.0.0.0:50051",
+    "model_path": "models/clip-model.onnx",
+    "index_path": "data/vector_index",
+    "index_type": "Flat",
+    "verbose": true
+}
