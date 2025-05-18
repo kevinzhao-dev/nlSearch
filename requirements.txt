@@ -7,3 +7,4 @@ requests
 faiss-cpu
 pydantic
 pillow
+python-multipart
