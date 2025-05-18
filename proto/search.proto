@@ -1,0 +1,24 @@
+syntax = "proto3";
+
+package search;
+
+service SearchService {
+  rpc Search(SearchRequest) returns (SearchResponse);
+  rpc Index(IndexRequest) returns (IndexResponse);
+}
+
+message SearchRequest {
+  string query = 1;
+}
+
+message SearchResponse {
+  repeated string results = 1;
+}
+
+message IndexRequest {
+  string file_path = 1;
+}
+
+message IndexResponse {
+  bool success = 1;
+}
