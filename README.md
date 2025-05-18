@@ -50,7 +50,11 @@ open http://localhost:3000
 git clone https://github.com/yourusername/nlSearch.git
 cd nlSearch
 
-# Download CLIP model
+# Set up a Python environment (no additional packages required)
+python3 -m venv .venv
+source .venv/bin/activate
+
+# Download CLIP model from the open clip repository
 python scripts/download_models.py
 
 # Create build directory
