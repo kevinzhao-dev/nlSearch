@@ -50,13 +50,11 @@ open http://localhost:3000
 git clone https://github.com/yourusername/nlSearch.git
 cd nlSearch
 
-# Set up a Python environment with required packages
+# Set up a Python environment (no additional packages required)
 python3 -m venv .venv
 source .venv/bin/activate
-pip install torch
-pip install git+https://github.com/openai/CLIP.git
 
-# Download CLIP model and convert to ONNX format
+# Download CLIP model in ONNX format
 python scripts/download_models.py
 
 # Create build directory
