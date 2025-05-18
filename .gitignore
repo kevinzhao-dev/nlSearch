@@ -1,6 +1,7 @@
 # C++ build artifacts
 backend/build/
 backend/lib/
+backend/src/generated/
 *.o
 *.a
 *.so
