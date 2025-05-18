@@ -23,7 +23,8 @@ if [ ! -f "$ROOT_DIR/models/clip-model.onnx" ]; then
     source "$VENV_DIR/bin/activate"
     
     # Install dependencies
-    pip install torch clip-by-openai
+    pip install torch
+    pip install git+https://github.com/openai/CLIP.git
     
     # Run the download script
     python "$ROOT_DIR/scripts/download_models.py"

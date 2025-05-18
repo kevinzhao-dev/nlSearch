@@ -1,62 +1,74 @@
 #!/usr/bin/env python3
 """
-Download a CLIP model from the open clip repository in ONNX format.
-This script fetches the pre-converted ONNX models provided by
-https://github.com/lakeraai/onnx_clip and places them under the ``models``
-directory so that the backend can load them.
-
-Unlike the previous version which required PyTorch and ``clip-by-openai`` to
-export the model, this script simply clones the repository and copies the
-appropriate ``.onnx`` file.
+Download CLIP model and convert to ONNX format.
+This script downloads the OpenAI CLIP model and converts it to ONNX format
+for use with nlSearch.
 """
 
 import argparse
-import subprocess
-import tempfile
-import shutil
+import torch
+import sys
 from pathlib import Path
 
-
 def main():
-    parser = argparse.ArgumentParser(
-        description="Download CLIP model from lakeraai/onnx_clip"
+    parser = argparse.ArgumentParser(description="Download CLIP model and convert to ONNX")
+    parser.add_argument(
+        "--model", 
+        default="ViT-B/32", 
+        choices=["ViT-B/32", "ViT-B/16", "ViT-L/14", "RN50", "RN101"],
+        help="CLIP model to download"
     )
     parser.add_argument(
-        "--model",
-        default="ViT-B-32",
-        help="Model name substring to search for within the repository",
-    )
-    parser.add_argument(
-        "--repo",
-        default="https://github.com/lakeraai/onnx_clip.git",
-        help="Repository URL containing the ONNX models",
-    )
-    parser.add_argument(
-        "--output",
+        "--output", 
         default="models/clip-model.onnx",
-        help="Output path for the ONNX model",
+        help="Output path for ONNX model"
     )
     args = parser.parse_args()
-
+    
+    # Create output directory if it doesn't exist
     output_path = Path(args.output)
     output_path.parent.mkdir(parents=True, exist_ok=True)
-
-    with tempfile.TemporaryDirectory() as tmpdir:
-        print(f"Cloning {args.repo} ...")
-        subprocess.run(["git", "clone", "--depth", "1", args.repo, tmpdir], check=True)
-        repo_path = Path(tmpdir)
-
-        pattern = f"*{args.model}*.onnx"
-        matches = list(repo_path.rglob(pattern))
-        if not matches:
-            matches = list(repo_path.rglob("*.onnx"))
-        if not matches:
-            raise FileNotFoundError("ONNX model not found in repository")
-
-        model_file = matches[0]
-        print(f"Found model: {model_file.name}")
-        shutil.copy(model_file, output_path)
-        print(f"Model saved to {output_path}")
+    
+    try:
+        import clip
+    except ImportError:
+        print("Error: The 'clip' package is not installed.")
+        print("Please install it with: pip install git+https://github.com/openai/CLIP.git")
+        sys.exit(1)
+    
+    print(f"Downloading CLIP model: {args.model}")
+    
+    try:
+        # Load the model
+        model, preprocess = clip.load(args.model, device="cpu")
+        model.eval()
+        
+        # Create dummy inputs
+        batch_size = 1
+        text_input = torch.zeros((batch_size, 77), dtype=torch.int64)  # Max token length is 77
+        image_input = torch.zeros((batch_size, 3, 224, 224), dtype=torch.float32)
+        
+        # Export to ONNX
+        print(f"Exporting model to ONNX: {args.output}")
+        torch.onnx.export(
+            model,
+            (text_input, image_input),
+            args.output,
+            input_names=["input_ids", "pixel_values"],
+            output_names=["text_embeds", "image_embeds"],
+            dynamic_axes={
+                "input_ids": {0: "batch_size"},
+                "pixel_values": {0: "batch_size"},
+                "text_embeds": {0: "batch_size"},
+                "image_embeds": {0: "batch_size"},
+            },
+            opset_version=12,
+        )
+        
+        print(f"ONNX model saved to {args.output}")
+    except Exception as e:
+        print(f"Error: Failed to download or convert CLIP model: {e}")
+        sys.exit(1)
 
 
 if __name__ == "__main__":
