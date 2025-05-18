@@ -51,33 +51,50 @@ if(NOT gRPC_FOUND)
 endif()
 
 # FAISS
-find_package(FAISS CONFIG QUIET)
-if(NOT FAISS_FOUND)
-    message(STATUS "FAISS not found, fetching...")
-    
-    # Fetch FAISS
-    FetchContent_Declare(
-        faiss
-        GIT_REPOSITORY https://github.com/facebookresearch/faiss.git
-        GIT_TAG v1.7.4
+# On macOS we'll use a simplified version of FAISS without OpenMP
+if(APPLE)
+    message(STATUS "Using simplified FAISS implementation for macOS (without OpenMP)")
+
+    # Create our own basic FAISS implementation using the IndexFlat
+    set(FAISS_INCLUDE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/include/vendor/faiss")
+    file(MAKE_DIRECTORY ${FAISS_INCLUDE_DIR})
+
+    # We'll implement a simplified version directly for the project
+    # (This would be replaced with a more robust solution in a real project)
+    add_library(faiss STATIC 
+        ${CMAKE_CURRENT_SOURCE_DIR}/src/vendor/faiss_wrapper.cpp
     )
-    
-    # Configure FAISS options
-    set(FAISS_ENABLE_GPU OFF CACHE BOOL "Build with GPU support" FORCE)
-    set(FAISS_ENABLE_PYTHON OFF CACHE BOOL "Build Python bindings" FORCE)
-    set(BUILD_TESTING OFF CACHE BOOL "Build tests" FORCE)
-    
-    FetchContent_MakeAvailable(faiss)
+    target_include_directories(faiss PUBLIC ${FAISS_INCLUDE_DIR})
+else()
+    # Use regular FAISS on non-macOS platforms
+    find_package(FAISS CONFIG QUIET)
+    if(NOT FAISS_FOUND)
+        message(STATUS "FAISS not found, fetching...")
+
+        # Fetch FAISS
+        FetchContent_Declare(
+            faiss
+            GIT_REPOSITORY https://github.com/facebookresearch/faiss.git
+            GIT_TAG v1.7.4
+        )
+
+        # Configure FAISS options
+        set(FAISS_ENABLE_GPU OFF CACHE BOOL "Build with GPU support" FORCE)
+        set(FAISS_ENABLE_PYTHON OFF CACHE BOOL "Build Python bindings" FORCE)
+        set(BUILD_TESTING OFF CACHE BOOL "Build tests" FORCE)
+
+        FetchContent_MakeAvailable(faiss)
+    endif()
 endif()
 
 # ONNX Runtime
 find_package(ONNXRuntime CONFIG QUIET)
 if(NOT ONNXRuntime_FOUND)
     message(STATUS "ONNX Runtime not found, fetching...")
-    
+
     # Set ONNX Runtime version
     set(ONNX_RUNTIME_VERSION "1.15.1")
-    
+
     # Download precompiled ONNX Runtime based on platform
     if(WIN32)
         set(ONNX_RUNTIME_URL "https://github.com/microsoft/onnxruntime/releases/download/v${ONNX_RUNTIME_VERSION}/onnxruntime-win-x64-${ONNX_RUNTIME_VERSION}.zip")
@@ -94,10 +111,10 @@ if(NOT ONNXRuntime_FOUND)
         set(ONNX_RUNTIME_URL "https://github.com/microsoft/onnxruntime/releases/download/v${ONNX_RUNTIME_VERSION}/onnxruntime-linux-x64-${ONNX_RUNTIME_VERSION}.tgz")
         set(ONNX_RUNTIME_ARCHIVE "onnxruntime-linux-x64-${ONNX_RUNTIME_VERSION}.tgz")
     endif()
-    
+
     # Create lib directory if it doesn't exist
     file(MAKE_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/lib)
-    
+
     # Download ONNX Runtime
     if(NOT EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/lib/${ONNX_RUNTIME_ARCHIVE})
         message(STATUS "Downloading ONNX Runtime from ${ONNX_RUNTIME_URL}")
@@ -109,10 +126,10 @@ if(NOT ONNXRuntime_FOUND)
             WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/lib
         )
     endif()
-    
+
     # Set include and library paths
     set(ONNX_RUNTIME_INCLUDE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/lib/onnxruntime-${ONNX_RUNTIME_VERSION}/include")
-    
+
     if(WIN32)
         set(ONNX_RUNTIME_LIB "${CMAKE_CURRENT_SOURCE_DIR}/lib/onnxruntime-${ONNX_RUNTIME_VERSION}/lib/onnxruntime.lib")
     else()
@@ -121,7 +138,7 @@ if(NOT ONNXRuntime_FOUND)
             set(ONNX_RUNTIME_LIB "${CMAKE_CURRENT_SOURCE_DIR}/lib/onnxruntime-${ONNX_RUNTIME_VERSION}/lib/libonnxruntime.dylib")
         endif()
     endif()
-    
+
     # Create imported target
     add_library(ONNXRuntime SHARED IMPORTED)
     set_target_properties(ONNXRuntime PROPERTIES
