@@ -93,7 +93,7 @@ if(NOT ONNXRuntime_FOUND)
     message(STATUS "ONNX Runtime not found, fetching...")
 
     # Set ONNX Runtime version
-    set(ONNX_RUNTIME_VERSION "1.15.1")
+    set(ONNX_RUNTIME_VERSION "1.22.0")
 
     # Download precompiled ONNX Runtime based on platform
     if(WIN32)
@@ -128,14 +128,14 @@ if(NOT ONNXRuntime_FOUND)
     endif()
 
     # Set include and library paths
-    set(ONNX_RUNTIME_INCLUDE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/lib/onnxruntime-${ONNX_RUNTIME_VERSION}/include")
+    set(ONNX_RUNTIME_INCLUDE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/lib/onnxruntime-osx-arm64-${ONNX_RUNTIME_VERSION}/include")
 
     if(WIN32)
         set(ONNX_RUNTIME_LIB "${CMAKE_CURRENT_SOURCE_DIR}/lib/onnxruntime-${ONNX_RUNTIME_VERSION}/lib/onnxruntime.lib")
     else()
-        set(ONNX_RUNTIME_LIB "${CMAKE_CURRENT_SOURCE_DIR}/lib/onnxruntime-${ONNX_RUNTIME_VERSION}/lib/libonnxruntime.so")
+        set(ONNX_RUNTIME_LIB "${CMAKE_CURRENT_SOURCE_DIR}/lib/onnxruntime-osx-arm64-${ONNX_RUNTIME_VERSION}/lib/libonnxruntime.dylib")
         if(APPLE)
-            set(ONNX_RUNTIME_LIB "${CMAKE_CURRENT_SOURCE_DIR}/lib/onnxruntime-${ONNX_RUNTIME_VERSION}/lib/libonnxruntime.dylib")
+            set(ONNX_RUNTIME_LIB "${CMAKE_CURRENT_SOURCE_DIR}/lib/onnxruntime-osx-arm64-${ONNX_RUNTIME_VERSION}/lib/libonnxruntime.dylib")
         endif()
     endif()
 

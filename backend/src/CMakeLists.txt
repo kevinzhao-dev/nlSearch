@@ -20,7 +20,8 @@ target_include_directories(nlsearch_lib PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}
 )
 
-# Link dependencies
+set(ONNX_RUNTIME_ROOT "${CMAKE_CURRENT_SOURCE_DIR}/lib/onnxruntime-osx-arm64-1.22.0")
+
 target_link_libraries(nlsearch_lib PUBLIC
     faiss
     ONNXRuntime
@@ -30,7 +31,6 @@ target_link_libraries(nlsearch_lib PUBLIC
     fmt::fmt
     nlohmann_json::nlohmann_json
 )
-
 # Server executable
 add_executable(nlsearch_server main.cpp)
 target_link_libraries(nlsearch_server PRIVATE nlsearch_lib)
