@@ -50,6 +50,11 @@ open http://localhost:3000
 git clone https://github.com/yourusername/nlSearch.git
 cd nlSearch
 
+# Set up a Python environment and install the dependencies
+python3 -m venv .venv
+source .venv/bin/activate
+pip install "numpy<2" torch clip-by-openai
+
 # Download CLIP model
 python scripts/download_models.py
 
