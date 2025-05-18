@@ -190,11 +190,18 @@ if(PROTO_FILES)
     file(MAKE_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/include/generated)
     file(MAKE_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/src/generated)
     
+    # Find the gRPC C++ plugin used by protoc
+    find_program(GRPC_CPP_PLUGIN_EXECUTABLE grpc_cpp_plugin)
+    if(NOT GRPC_CPP_PLUGIN_EXECUTABLE)
+        message(FATAL_ERROR "grpc_cpp_plugin not found. Please install gRPC and ensure the plugin is available in your PATH.")
+    endif()
+
     # Generate gRPC code
     foreach(PROTO_FILE ${PROTO_FILES})
         get_filename_component(PROTO_NAME ${PROTO_FILE} NAME_WE)
         execute_process(
             COMMAND protoc
+                --plugin=protoc-gen-grpc=${GRPC_CPP_PLUGIN_EXECUTABLE}
                 --grpc_out=${CMAKE_CURRENT_SOURCE_DIR}/src/generated
                 --cpp_out=${CMAKE_CURRENT_SOURCE_DIR}/src/generated
                 --proto_path=${CMAKE_CURRENT_SOURCE_DIR}/protos
